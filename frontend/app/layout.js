@@ -8,6 +8,8 @@ import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
 import { hardhat } from 'wagmi/chains';
 
+import { JobsContextProvider } from '@/context/Jobs.context';
+
 const { chains, publicClient } = configureChains(
   [hardhat],
   [publicProvider()]
@@ -31,9 +33,11 @@ export default function RootLayout({ children }) {
       <body>
         <WagmiConfig config={wagmiConfig}>
           <RainbowKitProvider chains={chains}>
+            <JobsContextProvider>
               <ChakraProvider>
                 {children}
               </ChakraProvider>
+            </JobsContextProvider>
           </RainbowKitProvider>
         </WagmiConfig>
       </body>
