@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 ///@title A Mini Job Smart contract
-///@author Ben BK
+///@author Max, Benjamin, Jonathan
 contract Jobs {
 
     struct Job {
