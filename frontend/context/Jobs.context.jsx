@@ -19,15 +19,15 @@ const JobsContextProvider = ({children}) => {
 
     const { address, isConnected } = useAccount();
 
-    // State Reducer
     const [ state, dispatchFromEventsAction ] = useReducer(jobsContextReducer, {
         addedJobCount: 0,
         takenJobCount: 0,
-        finishedAndPaidJobCount: 0
+        finishedAndPaidJobCount: 0,
+        jobs: []
     });
 
     const listenToAllEvents = async () => {
-
+    
         const allEvents = await viemPublicClient.getContractEvents({
             address: contractAddress,
             abi: contractAbi,
@@ -35,30 +35,30 @@ const JobsContextProvider = ({children}) => {
             toBlock: 'latest'
         });
 
-        // Set the state with the Event get
         dispatchFromEventsAction({
             type: JOBS_EVENTS_UPDATE_ACTION,
             payload: { logs: allEvents }
         });
+        
 
-        // Écoutez en continu les nouveaux événements
-        const eventListener = watchContractEvent(
-            {
+        const eventListener = watchContractEvent({
+
                 address: contractAddress,
                 abi: contractAbi,
-                eventName: 'allEvents', // Mettez le nom réel de votre événement ici
-            },
-            (logs) => {
+                eventName: 'allEvents',
 
-                // Set the state with the new Event
+        }, (logs) => {
+                
                 dispatchFromEventsAction({
+
                     type: JOBS_EVENTS_UPDATE_ACTION,
                     payload: { logs }
+
                 });
+
             },
         );
 
-        // Return the listener when the components is break
         return () => eventListener.stop();
     };
 
@@ -67,20 +67,17 @@ const JobsContextProvider = ({children}) => {
     }, []);
 
     useEffect(() => {
-
-        console.log("addedJobCount -> " + state.addedJobCount);
-        console.log("takenJobCount -> " + state.takenJobCount);
-        console.log("finishedAndPaidJobCount -> " + state.finishedAndPaidJobCount);
-
     }, [isConnected, address]);
 
     return (
+        
         <JobsContext.Provider value={{ 
             isUserConnected: isConnected, 
             userAddress: address,
             addedJobCount: state.addedJobCount,
             takenJobCount: state.takenJobCount,
-            finishedAndPaidJobCount: state.finishedAndPaidJobCount
+            finishedAndPaidJobCount: state.finishedAndPaidJobCount,
+            jobs: state.jobs
         }}>
             { children }
         </JobsContext.Provider>

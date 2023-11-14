@@ -2,7 +2,9 @@ export const JOBS_EVENTS_UPDATE_ACTION = 'jobs/events/update';
 
 const jobsContextReducer = (state, action) => {
 
-    if (action.type === JOBS_EVENTS_UPDATE_ACTION) {
+    const logs = action.payload.logs;
+
+    if (action.type === JOBS_EVENTS_UPDATE_ACTION && logs.length > 0) {
 
         let counters = {
             addedJobCount: state.addedJobCount ? state.addedJobCount : 0,
@@ -10,12 +12,21 @@ const jobsContextReducer = (state, action) => {
             finishedAndPaidJobCount: state.finishedAndPaidJobCount ? state.finishedAndPaidJobCount : 0
         }
 
-        for (let log of action.payload.logs) {
+        let uniqueJobs = new Set(state.jobs);
+
+        for (let log of logs) {
 
             switch (log.eventName) {
 
                 case 'jobAdded':
                     counters.addedJobCount += 1;
+                    uniqueJobs.add({
+                        id: log.args.id,
+                        author: log.args.author,
+                        description: log.args.description,
+                        price: log.args.price,
+                        isFinished: log.args.isFinished
+                    })
                     break;
 
                 case 'jobTaken':
@@ -29,11 +40,13 @@ const jobsContextReducer = (state, action) => {
         }
 
         return {
+
             ...state,
 
-            addedJobCount: state.addedJobCount,
-            takenJobCount: state.takenJobCount,
-            finishedAndPaidJobCount: state.finishedAndPaidJobCount
+            addedJobCount: counters.addedJobCount,
+            takenJobCount: counters.takenJobCount,
+            finishedAndPaidJobCount: counters.finishedAndPaidJobCount,
+            jobs: Array.from(uniqueJobs),
         };
     }
 
