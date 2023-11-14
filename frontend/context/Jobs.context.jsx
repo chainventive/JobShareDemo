@@ -49,7 +49,7 @@ const JobsContextProvider = ({children}) => {
                 eventName: 'allEvents', // Mettez le nom réel de votre événement ici
             },
             (logs) => {
-                console.log(logs);
+
                 // Set the state with the new Event
                 dispatchFromEventsAction({
                     type: JOBS_EVENTS_UPDATE_ACTION,
