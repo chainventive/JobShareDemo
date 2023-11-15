@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 export const JOBS_EVENTS_UPDATE_ACTION = 'jobs/events/update';
 
 const jobsContextReducer = (state, action) => {
@@ -6,35 +8,53 @@ const jobsContextReducer = (state, action) => {
 
     if (action.type === JOBS_EVENTS_UPDATE_ACTION && logs.length > 0) {
 
-        let counters = {
-            addedJobCount: state.addedJobCount ? state.addedJobCount : 0,
-            takenJobCount: state.takenJobCount ? state.takenJobCount : 0,
-            finishedAndPaidJobCount: state.finishedAndPaidJobCount ? state.finishedAndPaidJobCount : 0
-        }
-
-        let uniqueJobs = new Set(state.jobs);
-
         for (let log of logs) {
 
             switch (log.eventName) {
 
                 case 'jobAdded':
-                    counters.addedJobCount += 1;
-                    uniqueJobs.add({
-                        id: log.args.id,
-                        author: log.args.author,
-                        description: log.args.description,
-                        price: log.args.price,
-                        isFinished: log.args.isFinished
-                    })
+
+                    let addedJobId = Number(log.args.id);
+
+                    if (!state.jobs.some(job => job.id == addedJobId)) {
+
+                        let addedJobPrice = ethers.formatEther(log.args.price);
+
+                        state.jobs.push({
+                            id: addedJobId,
+                            author: log.args.author,
+                            description: log.args.description,
+                            price: addedJobPrice,
+                            isFinished: log.args.isFinished
+                        });
+                    }
+
                     break;
 
                 case 'jobTaken':
-                    counters.takenJobCount += 1;
+
+                    let takenJobId = Number(log.args.id);
+
+                    let takenJob = state.jobs.find(job => job.id === takenJobId);
+
+                    if (takenJob) {
+
+                        takenJob.worker = log.args.worker;
+                    }
+
                     break;
 
                 case 'jobIsFinishedAndPaid':
-                    counters.finishedAndPaidJobCount += 1;
+
+                    let finishedAndPaidJobId = Number(log.args.id);
+
+                    let finishedAndPaidJob = state.jobs.find(job => job.id === finishedAndPaidJobId);
+
+                    if (finishedAndPaidJob) {
+
+                        takenJob.isFinishedAndPaid = true;
+                    }
+
                     break;
             }
         }
@@ -43,10 +63,6 @@ const jobsContextReducer = (state, action) => {
 
             ...state,
 
-            addedJobCount: counters.addedJobCount,
-            takenJobCount: counters.takenJobCount,
-            finishedAndPaidJobCount: counters.finishedAndPaidJobCount,
-            jobs: Array.from(uniqueJobs),
         };
     }
 
