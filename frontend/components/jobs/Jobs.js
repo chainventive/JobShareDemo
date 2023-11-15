@@ -57,6 +57,41 @@ const Jobs = () => {
 
     const payJob = async (jobId) => {
         
+        try {
+
+            const { request } =  await prepareWriteContract({
+                address: contractAddress,
+                abi: contractAbi,
+                functionName: 'setIsFinishedAndPay',
+                args: [jobId]
+            });
+
+            const { hash } = await writeContract(request);
+            const data = await waitForTransaction({hash: hash });   
+            
+            toast({
+                title: 'Success',
+                description: "Job finished and paid !",
+                status: 'success',
+                duration: 4000,
+                isClosable: true,
+            });
+
+        } 
+        catch (err) {
+
+            console.log(err.message);
+            
+            let msgError = err instanceof ContractFunctionExecutionError ? err.cause.reason : "An error occured"
+            
+            toast({
+                title: 'Error.',
+                description: msgError,
+                status: 'error',
+                duration: 4000,
+                isClosable: true,
+            });
+        }
     }
 
     return (
@@ -99,7 +134,14 @@ const Jobs = () => {
                                                     
                                                     ) : (
 
-                                                        <Text as='b' color="green">Job taken</Text>
+                                                        !job.isFinishedAndPaid ? (
+                                                            
+                                                            <Text as='b' color="green">{ userAddress === job.worker ? "You took this job" : "Job taken" }</Text>
+
+                                                        ) : (
+
+                                                            <Text as='b' color="red">Job finished</Text>
+                                                        )
                                                     ) 
                                                 }
                                                 </CardFooter>
@@ -114,7 +156,7 @@ const Jobs = () => {
                                                         
                                                     ) : (
                                                         
-                                                        !job.isFinishedAndPay ? (
+                                                        !job.isFinishedAndPaid ? (
                                                             
                                                             <Button variant='solid' colorScheme='red' size='sm' onClick={() => payJob(job.id)}>Pay</Button>
 

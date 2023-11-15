@@ -52,7 +52,7 @@ const jobsContextReducer = (state, action) => {
 
                     if (finishedAndPaidJob) {
 
-                        takenJob.isFinishedAndPaid = true;
+                        finishedAndPaidJob.isFinishedAndPaid = true;
                     }
 
                     break;
